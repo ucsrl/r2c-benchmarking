@@ -1,0 +1,39 @@
+From d15413b637954288dcc26d2c4e5e2f5a93741531 Mon Sep 17 00:00:00 2001
+From: Felix Berlakovich <felix@berlakovich.at>
+Date: Sun, 8 Jan 2023 12:18:22 +0100
+Subject: [PATCH] build fixes
+
+---
+ net/dns/dns_transaction_unittest.cc          | 2 +-
+ services/network/network_context_unittest.cc | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/net/dns/dns_transaction_unittest.cc b/net/dns/dns_transaction_unittest.cc
+index fe20853547047..56a4ed5afded1 100644
+--- a/net/dns/dns_transaction_unittest.cc
++++ b/net/dns/dns_transaction_unittest.cc
+@@ -834,7 +834,7 @@ class DnsTransactionTestBase : public testing::Test {
+ 
+     request_context_ = std::make_unique<TestURLRequestContext>();
+     resolve_context_ = std::make_unique<ResolveContext>(
+-        request_context_.get(), nullptr /* host_cache */);
++        request_context_.get(), false);
+   }
+ 
+   void TearDown() override {
+diff --git a/services/network/network_context_unittest.cc b/services/network/network_context_unittest.cc
+index 81ffbd46c9fb2..77287deac35cc 100644
+--- a/services/network/network_context_unittest.cc
++++ b/services/network/network_context_unittest.cc
+@@ -3216,7 +3216,7 @@ class TestResolverFactory : public net::HostResolver::Factory {
+       bool enable_caching) override {
+     DCHECK(host_mapping_rules.empty());
+     auto resolve_context = std::make_unique<net::ResolveContext>(
+-        nullptr /* url_request_context */, nullptr /* host_cache */);
++        nullptr /* url_request_context */, false /* host_cache */);
+     auto resolver = std::make_unique<net::ContextHostResolver>(
+         manager, std::move(resolve_context));
+     resolvers_.push_back(resolver.get());
+-- 
+2.30.2
+

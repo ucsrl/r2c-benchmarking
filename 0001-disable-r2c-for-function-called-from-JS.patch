@@ -1,0 +1,39 @@
+From cd95edec25f45c4f8d229cc24895c0194a48f606 Mon Sep 17 00:00:00 2001
+From: Felix Berlakovich <felix@berlakovich.at>
+Date: Sun, 8 Jan 2023 12:18:14 +0100
+Subject: [PATCH] disable r2c for function called from JS
+
+---
+ src/regexp/regexp-interpreter.cc | 2 +-
+ src/regexp/regexp-interpreter.h  | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/regexp/regexp-interpreter.cc b/src/regexp/regexp-interpreter.cc
+index a78d73f863..9a74654bb1 100644
+--- a/src/regexp/regexp-interpreter.cc
++++ b/src/regexp/regexp-interpreter.cc
+@@ -1034,7 +1034,7 @@ IrregexpInterpreter::Result IrregexpInterpreter::MatchInternal(
+ IrregexpInterpreter::Result IrregexpInterpreter::MatchForCallFromJs(
+     Address subject, int32_t start_position, Address, Address, int* registers,
+     int32_t registers_length, Address, RegExp::CallOrigin call_origin,
+-    Isolate* isolate, Address regexp) {
++    Isolate* isolate, Address regexp)  __attribute__((annotate("no_btra"))) {
+   DCHECK_NOT_NULL(isolate);
+   DCHECK_NOT_NULL(registers);
+   DCHECK(call_origin == RegExp::CallOrigin::kFromJs);
+diff --git a/src/regexp/regexp-interpreter.h b/src/regexp/regexp-interpreter.h
+index d77b5db896..947b5e7596 100644
+--- a/src/regexp/regexp-interpreter.h
++++ b/src/regexp/regexp-interpreter.h
+@@ -41,7 +41,7 @@ class V8_EXPORT_PRIVATE IrregexpInterpreter : public AllStatic {
+                                    int* registers, int32_t registers_length,
+                                    Address backtrack_stack,
+                                    RegExp::CallOrigin call_origin,
+-                                   Isolate* isolate, Address regexp);
++                                   Isolate* isolate, Address regexp)  __attribute__((annotate("no_btra")));
+ 
+   static Result MatchInternal(Isolate* isolate, ByteArray code_array,
+                               String subject_string, int* registers,
+-- 
+2.30.2
+

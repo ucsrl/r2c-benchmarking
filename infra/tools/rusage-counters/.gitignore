@@ -1,0 +1,7 @@
+*.o
+*.so
+*.a
+*.d
+test/hello
+test/fork
+test/plushello

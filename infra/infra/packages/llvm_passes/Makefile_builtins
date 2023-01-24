@@ -1,0 +1,60 @@
+ifndef OBJDIR
+    $(error OBJDIR is undefined)
+endif
+ifndef PREFIX
+    $(error PREFIX is undefined)
+endif
+
+CXX            := g++  # must be the same as used to compile LLVM
+CXXFLAGS       := -I. -Iinclude/builtin -Werror -Wall -std=c++0x -g -O2 -fPIC \
+                  `llvm-config --cxxflags`
+LDFLAGS        := -g -shared `llvm-config --ldflags`
+LLVMLIB        := `llvm-config --libdir`
+LDFLAGSGOLD    := -Wl,--no-undefined -L$(LLVMLIB) \
+                  -l:LLVMgold.so -Wl,--rpath=$(LLVMLIB)
+LINK_STATICLIB := -L$(OBJDIR) -Wl,-whole-archive \
+                  -lpasses-builtin -Wl,-no-whole-archive
+
+SUBDIRS   ?=
+SRCS      := $(wildcard *.cpp) $(foreach d,$(SUBDIRS),$(wildcard $d/*.cpp))
+OBJNAMES  := $(patsubst %.cpp,%.o,$(SRCS))
+OBJS      := $(addprefix $(OBJDIR)/,$(OBJNAMES))
+DEPS      := $(OBJS:.o=.d)
+LIBGOLD   := libpasses-gold.so
+LIBOPT    := libpasses-opt.so
+LIBSTATIC := libpasses-builtin.a
+
+all: $(OBJDIR)/$(LIBGOLD) $(OBJDIR)/$(LIBOPT)
+
+ifeq ($(USE_GOLD_PASSES),true)
+$(OBJDIR)/$(LIBGOLD): LDFLAGS += $(LDFLAGSGOLD)
+$(OBJDIR)/$(LIBGOLD): CXXFLAGS += -DUSE_GOLD_PASSES
+endif
+$(OBJDIR)/$(LIBGOLD) $(OBJDIR)/$(LIBOPT): $(OBJDIR)/$(LIBSTATIC)
+	$(CXX) $(LINK_STATICLIB) $(LDFLAGS) -o $@
+
+$(OBJDIR)/$(LIBSTATIC): $(OBJS) | $(OBJDIR)
+	cd $(OBJDIR) && $(AR) crsv $(@F) $(OBJNAMES)
+
+-include $(DEPS)
+
+$(OBJDIR)/%.o: %.cpp | $(OBJDIR)
+	@mkdir -p $(@D)  # needed for subdirs
+	$(CXX) -c $(CXXFLAGS) -MMD -o $@ $<
+
+$(OBJDIR):
+	mkdir -p $@
+
+clean:
+	rm -rf $(OBJDIR)
+
+install: $(addprefix $(PREFIX)/,$(LIBSTATIC) $(LIBGOLD) $(LIBOPT))
+
+$(PREFIX)/%: $(OBJDIR)/% | $(PREFIX)
+	cp $< $@
+
+uninstall:
+	rm -f $(addprefix $(PREFIX)/,$(LIBSTATIC) $(LIBGOLD) $(LIBOPT))
+
+$(PREFIX):
+	mkdir -p $@
