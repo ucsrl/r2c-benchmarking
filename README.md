@@ -17,7 +17,7 @@ All the benchmarking configurations are encoded in `setup.py`.
 
 ## Building the compiler
 To build the modified LLVM compiler, you need a working build toolchain.
-On Debian you can install one by issuing `sudo apt-get install build-essential`.
+On Debian you can install one by issuing `sudo apt-get install build-essential ninja-build`.
 You can build the compiler without running any benchmarks by using the command
 `venv/bin/python setup.py pkg-build llvm-src-11.0.0`
 The command will download and build all build requirements, as well as the modified LLVM compiler.
@@ -88,14 +88,24 @@ and add it to your `authorized_keys` file with `cat $HOME/.ssh/id_localhost.pub 
 
 
 ### Nginx
-1. To run a throughput benchmark with a fully protected nginx, where both client and server run on the same machine, use the following command
-`venv/bin/python3 setup.py run-random nginx-1.14.2 full-r2c -t bench --parallel=ssh --ssh-nodes infra-client infra-server --remote-client-host localhost --remote-server-host localhost --server-ip localhost --port 20000 --duration 30 --threads $(($(nproc) / 2)) --iterations 3 --workers $(($(nproc) / 2)) --worker-connections 1024 --filesize 64 --collect-stats cpu rss --collect-stats-interval 1 --connections 16 32 64 80 96 112 128 144 160 176 192 208 224 240 256 384 512 640 768 896 1024 1280 1536 2048 --restart-server-between-runs`
+1. To run a throughput benchmark with a fully protected nginx, where both client and server run on the same machine, use the following commands
+```
+   THREADS=$(($(nproc) / 2))
+   # round the number of processes to the closest power of 2
+   MIN_CONNECTIONS=$(venv/bin/python3 -c "import math; print(2**math.ceil(math.log2($THREADS)))")
+   venv/bin/python3 setup.py run-random nginx-1.14.2 full-r2c -t bench --parallel=ssh --ssh-nodes infra-client infra-server --remote-client-host localhost --remote-server-host localhost --server-ip localhost --port 20000 --duration 30 --threads $THREADS --iterations 3 --workers $THREADS --worker-connections 1024 --filesize 64 --collect-stats cpu-proc cpu rss --collect-stats-interval 1 --connections $(seq -s ' ' $MIN_CONNECTIONS 16 256) $(seq -s ' ' 384 128 1024) $(seq -s ' ' 1280 256 2048) --restart-server-between-runs
+```
 1. The results will be located in `results/run.<date>` and can be displayed with e.g.
 `venv/bin/python setup.py report nginx-1.14.2 -f cpu:mean throughput:median:stdev_percent 50p_latency:median 75p_latency:median 90p_latency:median 99p_latency:median --aggregate max  --refresh results/run.<date>`
 
 ### Apache
 1. To run a throughput benchmark with a fully protected Apache, where both client and server run on the same machine, use the following command
-`venv/bin/python3 setup.py run-random apache-2.4.54 full-r2c -t bench -j $(nproc) --parallel=ssh --ssh-nodes infra-client infra-server --remote-client-host localhost --remote-server-host localhost --server-ip localhost --port 20000 --duration 30  --threads $(($(nproc) / 2)) --iterations 3 --workers $(($(nproc) / 2))  --filesize 64 --collect-stats cpu rss --collect-stats-interval 1 --connections 16 32 64 80 96 112 128 144 160 176 192 208 224 240 256 384 512 640 768 896 1024 1280 1536 2048 --restart-server-between-runs --timeout 5`
+```
+   THREADS=$(($(nproc) / 2))
+   # round the number of processes to the closest power of 2
+   MIN_CONNECTIONS=$(venv/bin/python3 -c "import math; print(2**math.ceil(math.log2($THREADS)))")
+   venv/bin/python3 setup.py run-random apache-2.4.54 full-r2c -t bench -j $(nproc) --parallel=ssh --ssh-nodes infra-client infra-server --remote-client-host localhost --remote-server-host localhost --server-ip localhost --port 20000 --duration 30  --threads $(($(nproc) / 2)) --iterations 3 --workers $(($(nproc) / 2))  --filesize 64 --collect-stats cpu-proc cpu rss --collect-stats-interval 1 --connections $(seq -s ' ' $MIN_CONNECTIONS 16 256) $(seq -s ' ' 384 128 1024) $(seq -s ' ' 1280 256 2048) --restart-server-between-runs --timeout 5
+```
 1. The results will be located in `results/run.<date>` and can be displayed with e.g.
 `venv/bin/python setup.py report apache-2.4.54 -f cpu:mean throughput:median:stdev_percent 50p_latency:median 75p_latency:median 90p_latency:median 99p_latency:median --aggregate max  --refresh results/run.<date>`
 

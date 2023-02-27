@@ -23,18 +23,18 @@ from typing import List, Iterable
 
 class WebServer(Target, metaclass=ABCMeta):
     reportable_fields = {
-        'connections':  'concurrent client connections',
-        'threads':      'number of client threads making connections',
-        'throughput':   'attained throughput (reqs/s)',
-        'avg_latency':  'average latency (ms)',
-        '50p_latency':  '50th percentile latency (ms)',
-        '75p_latency':  '75th percentile latency (ms)',
-        '90p_latency':  '90th percentile latency (ms)',
-        '99p_latency':  '99th percentile latency (ms)',
+        'connections': 'concurrent client connections',
+        'threads': 'number of client threads making connections',
+        'throughput': 'attained throughput (reqs/s)',
+        'avg_latency': 'average latency (ms)',
+        '50p_latency': '50th percentile latency (ms)',
+        '75p_latency': '75th percentile latency (ms)',
+        '90p_latency': '90th percentile latency (ms)',
+        '99p_latency': '99th percentile latency (ms)',
         'transferrate': 'network traffic (KB/s)',
-        'duration':     'benchmark duration (s)',
-        'cpu':          'median server CPU load during benchmark (%%)',
-        'cpu-proc':     'median CPU of server processes'
+        'duration': 'benchmark duration (s)',
+        'cpu': 'median server CPU load during benchmark (%%)',
+        'cpu-proc': 'median CPU of server processes'
     }
     aggregation_field = 'connections'
 
@@ -45,87 +45,86 @@ class WebServer(Target, metaclass=ABCMeta):
 
     def add_run_args(self, parser):
         parser.add_argument('-t', '-type',
-                dest='run_type', required=True,
-                choices=('serve', 'test', 'bench', 'bench-server', 'bench-client'),
-                help='serve: just run the web server until it is killed\n'
-                     'test: test a single fetch of randomized index.html\n'
-                     'bench: run server and wrk client on separate nodes '
-                     '(needs prun)')
+                            dest='run_type', required=True,
+                            choices=('serve', 'test', 'bench', 'bench-server', 'bench-client'),
+                            help='serve: just run the web server until it is killed\n'
+                                 'test: test a single fetch of randomized index.html\n'
+                                 'bench: run server and wrk client on separate nodes '
+                                 '(needs prun)')
 
         # common options
         parser.add_argument('--port', type=int,
-                default=random.randint(10000, 30000),
-                help='web server port (random by default)')
+                            default=random.randint(10000, 30000),
+                            help='web server port (random by default)')
         parser.add_argument('--filesize', type=str, default='64',
-                help='filesize for generated index.html in bytes '
-                     '(supports suffixes compatible with dd, default 64)')
+                            help='filesize for generated index.html in bytes '
+                                 '(supports suffixes compatible with dd, default 64)')
 
         # bench options
         parser.add_argument('--duration',
-                metavar='SECONDS', default=10, type=int,
-                help='benchmark duration in seconds (default 10)')
+                            metavar='SECONDS', default=10, type=int,
+                            help='benchmark duration in seconds (default 10)')
         parser.add_argument('--timeout',
-                metavar='SECONDS', default=2, type=int,
-                help='wrk connection timeout in seconds (default 2)')
+                            metavar='SECONDS', default=2, type=int,
+                            help='wrk connection timeout in seconds (default 2)')
         parser.add_argument('--threads',
-                type=int, default=1,
-                help='concurrent wrk threads (distributes client load)')
+                            type=int, default=1,
+                            help='concurrent wrk threads (distributes client load)')
         parser.add_argument('--connections',
-                nargs='+', type=int,
-                help='a list of concurrent wrk connections; '
-                     'start low and increment until the server is saturated')
+                            nargs='+', type=int,
+                            help='a list of concurrent wrk connections; '
+                                 'start low and increment until the server is saturated')
         parser.add_argument('--cleanup-time',
-                metavar='SECONDS', default=0, type=int,
-                help='time to wait between benchmarks (default 3)')
+                            metavar='SECONDS', default=0, type=int,
+                            help='time to wait between benchmarks (default 3)')
 
         parser.add_argument('--restart-server-between-runs',
-                default=False, action='store_true',
-                help='terminate and restart the server between each '
-                     'benchmarking run (e.g., when benchmarking multiple '
-                     'connection configurations or doing multiple iterations\n'
-                     'NOTE: only supported for --parallel=ssh!')
+                            default=False, action='store_true',
+                            help='terminate and restart the server between each '
+                                 'benchmarking run (e.g., when benchmarking multiple '
+                                 'connection configurations or doing multiple iterations\n'
+                                 'NOTE: only supported for --parallel=ssh!')
         parser.add_argument('--disable-warmup',
-                default=False, action='store_true',
-                help='disable the warmup run of the server before doing actual '
-                     'benchmarks. This can be useful for measuring statistics\n'
-                     'NOTE: only supported for --parallel=ssh!')
+                            default=False, action='store_true',
+                            help='disable the warmup run of the server before doing actual '
+                                 'benchmarks. This can be useful for measuring statistics\n'
+                                 'NOTE: only supported for --parallel=ssh!')
         parser.add_argument('--collect-stats',
-                nargs='+',
-                choices=('cpu', 'cpu-proc', 'rss', 'vms'),
-                help='Statistics to collect of server while running benchmarks '
-                     '(disabled if not specified)\n'
-                     'NOTE: only supported for --parallel=ssh!\n'
-                     'cpu: CPU utilization of entire server (0..100%%)\n'
-                     'cpu-proc: sum of CPU utilization of all server processes '
-                     '(0..nproc*100%%)\n'
-                     'rss: sum of Resident Set Size of all server processes\n'
-                     'vms: sum of Virtual Memory Size of all server processes\n')
+                            nargs='+',
+                            choices=('cpu', 'cpu-proc', 'rss', 'vms'),
+                            help='Statistics to collect of server while running benchmarks '
+                                 '(disabled if not specified)\n'
+                                 'NOTE: only supported for --parallel=ssh!\n'
+                                 'cpu: CPU utilization of entire server (0..100%%)\n'
+                                 'cpu-proc: sum of CPU utilization of all server processes '
+                                 '(0..nproc*100%%)\n'
+                                 'rss: sum of Resident Set Size of all server processes\n'
+                                 'vms: sum of Virtual Memory Size of all server processes\n')
         parser.add_argument('--collect-stats-interval',
-                type=float, default=1,
-                help='seconds between measurements of statistics provided in '
-                     'the --collect-stats argument. Has no effect if no '
-                     'statistics are specified.\n'
-                     'NOTE: only supported for --parallel=ssh!')
+                            type=float, default=1,
+                            help='seconds between measurements of statistics provided in '
+                                 'the --collect-stats argument. Has no effect if no '
+                                 'statistics are specified.\n'
+                                 'NOTE: only supported for --parallel=ssh!')
         parser.add_argument('--remote-client-host', type=str, default='',
-                help='if specified, connect to the remote client runner via '
-                     'this host instead of setting up an SSH tunnel.\n'
-                     'NOTE: only supported for --parallel=ssh!')
+                            help='if specified, connect to the remote client runner via '
+                                 'this host instead of setting up an SSH tunnel.\n'
+                                 'NOTE: only supported for --parallel=ssh!')
         parser.add_argument('--remote-server-host', type=str, default='',
-                help='if specified, connect to the remote server runner via '
-                     'this host instead of setting up an SSH tunnel.\n'
-                     'NOTE: only supported for --parallel=ssh!')
+                            help='if specified, connect to the remote server runner via '
+                                 'this host instead of setting up an SSH tunnel.\n'
+                                 'NOTE: only supported for --parallel=ssh!')
         parser.add_argument('--nofork', action='store_true',
-                help='if specified, run the server without any forking '
-                     '(1 worker max)\n'
-                     'NOTE: only supported for --parallel=ssh and nginx!')
-        parser.add_argument('--config', type=str, default = '',
-                help='Config file to be used instead of the default template\n'
-                'NOTE: use absolute path')
-
+                            help='if specified, run the server without any forking '
+                                 '(1 worker max)\n'
+                                 'NOTE: only supported for --parallel=ssh and nginx!')
+        parser.add_argument('--config', type=str, default='',
+                            help='Config file to be used instead of the default template\n'
+                                 'NOTE: use absolute path')
 
         # bench-client options
         parser.add_argument('--server-ip',
-                help='IP of machine running matching bench-server')
+                            help='IP of machine running matching bench-server')
 
     def run(self, ctx, instance, pool=None):
         runner = WebServerRunner(self, ctx, instance, pool)
@@ -266,7 +265,7 @@ class WebServer(Target, metaclass=ABCMeta):
             size = float(m.group(1))
             unit = m.group(2)
             factors = {
-                 'B': 1./1024,
+                'B': 1. / 1024,
                 'KB': 1,
                 'MB': 1024,
                 'GB': 1024 * 1024,
@@ -277,6 +276,9 @@ class WebServer(Target, metaclass=ABCMeta):
 
         def collect_from_file(name):
             outfile = os.path.join(dirname, filename.replace('bench', name))
+            if not os.path.isfile(outfile):
+                return None
+
             with open(outfile) as f:
                 try:
                     values = [float(line) for line in f]
@@ -286,6 +288,14 @@ class WebServer(Target, metaclass=ABCMeta):
 
         cpu_usages = collect_from_file("cpu")
         cpu_proc_usages = collect_from_file("cpu-proc")
+
+        cpu_median = None
+        if cpu_usages is not None:
+            cpu_median = median(sorted(cpu_usages))
+
+        cpu_proc_median = None
+        if cpu_proc_usages is not None:
+            cpu_proc_median = median(sorted(cpu_proc_usages))
 
         yield {
             'threads': int(search(r'(\d+) threads and \d+ connections')),
@@ -298,8 +308,8 @@ class WebServer(Target, metaclass=ABCMeta):
             'throughput': float(search(r'^Requests/sec:\s+([0-9.]+)')),
             'transferrate': parse_bytesize(search(r'^Transfer/sec:\s+(.+)')),
             'duration': float(search(r'\d+ requests in ([\d.]+)s,')),
-            'cpu': median(sorted(cpu_usages)),
-            'cpu-proc': median(sorted(cpu_proc_usages))
+            'cpu': cpu_median,
+            'cpu-proc': cpu_proc_median
         }
 
 
@@ -318,7 +328,7 @@ class WebServerRunner:
         # Directory where we stage our run directory, which will then be copied
         # to the (node-local) rundir.
         self.stagedir = os.path.join(ctx.paths.buildroot, 'run-staging',
-                '%s-%s' % (server.name, instance.name))
+                                     '%s-%s' % (server.name, instance.name))
 
         if self.pool:
             if isinstance(self.pool, SSHPool):
@@ -410,15 +420,15 @@ class WebServerRunner:
             with open(os.path.join(self.stagedir, 'www/index.html')) as f:
                 if ret['stdout'] != f.read():
                     raise RemoteRunnerError('contents of ' + url +
-                            ' do not match')
+                                            ' do not match')
 
             # Do a warmup run
             if not self.ctx.args.disable_warmup:
                 client.run('{wrk_path} --duration 1s --threads {wrk_threads} '
-                            '--connections 400 "{url}"'
-                                .format(wrk_path=wrk_path,
-                                        wrk_threads=wrk_threads,
-                                        url=url))
+                           '--connections 400 "{url}"'
+                           .format(wrk_path=wrk_path,
+                                   wrk_threads=wrk_threads,
+                                   url=url))
 
             server.poll(expect_alive=True)
 
@@ -428,28 +438,28 @@ class WebServerRunner:
             monitor statistics of the server and write back those as well."""
 
             self.ctx.log.info('Benchmarking {server} with {cons} connections, '
-                    '#{it}'.format(cons=cons, it=it, server=self.server.name))
+                              '#{it}'.format(cons=cons, it=it, server=self.server.name))
 
             if collect_stats:
                 server.start_monitoring(stats=collect_stats,
-                        interval=self.ctx.args.collect_stats_interval)
+                                        interval=self.ctx.args.collect_stats_interval)
 
             # Allow wrk to return non-zero values, which it does when (some) of
             # the requests are errors. We just go on benchmarking, and let the
             # report command worry about this.
             ret = client.run('{wrk_path} '
-                                '--latency '
-                                '--duration {wrk_duration}s '
-                                '--connections {cons} '
-                                '--threads {wrk_threads} '
-                                '--timeout {wrk_timeout} '
-                                '"{url}"'.format(wrk_path=wrk_path,
-                                                wrk_duration=wrk_duration,
-                                                wrk_threads=wrk_threads,
-                                                wrk_timeout=wrk_timeout,
-                                                cons=cons,
-                                                url=url),
-                    allow_error=True)
+                             '--latency '
+                             '--duration {wrk_duration}s '
+                             '--connections {cons} '
+                             '--threads {wrk_threads} '
+                             '--timeout {wrk_timeout} '
+                             '"{url}"'.format(wrk_path=wrk_path,
+                                              wrk_duration=wrk_duration,
+                                              wrk_threads=wrk_threads,
+                                              wrk_timeout=wrk_timeout,
+                                              cons=cons,
+                                              url=url),
+                             allow_error=True)
 
             stats = {}
             if collect_stats:
@@ -457,7 +467,7 @@ class WebServerRunner:
 
             # Write results: wrk output and all of our collected stats
             resfile = lambda base: self.logfile('{base}.{cons}.{it}'
-                    .format(base=base, cons=cons, it=it))
+                                                .format(base=base, cons=cons, it=it))
             with open(resfile('bench'), 'w') as f:
                 f.write(ret['stdout'])
             for stat in collect_stats:
@@ -491,11 +501,11 @@ class WebServerRunner:
         rrunner_script = 'remote_runner.py'
         rrunner_script_path = tempfile(rrunner_script)
         client_cmd = ['python3', rrunner_script_path,
-                '-p', rrunner_port_client,
-                '-o', tempfile(client_debug_file)]
+                      '-p', rrunner_port_client,
+                      '-o', tempfile(client_debug_file)]
         server_cmd = ['python3', rrunner_script_path,
-                '-p', rrunner_port_server,
-                '-o', tempfile(server_debug_file)]
+                      '-p', rrunner_port_server,
+                      '-o', tempfile(server_debug_file)]
         curdir = os.path.dirname(os.path.abspath(__file__))
 
         client_host = self.ctx.args.remote_client_host or 'localhost'
@@ -527,11 +537,11 @@ class WebServerRunner:
 
         # Launch the remote runners so we can easily control each node.
         client_job: Any = self.pool.run(self.ctx, client_cmd, jobid='client',
-                nnodes=1, outfile=client_outfile, nodes=client_node,
-                tunnel_to_nodes_dest=client_tunnel_dest)[0]
+                                        nnodes=1, outfile=client_outfile, nodes=client_node,
+                                        tunnel_to_nodes_dest=client_tunnel_dest)[0]
         server_job: Any = self.pool.run(self.ctx, server_cmd, jobid='server',
-                nnodes=1, outfile=server_outfile, nodes=server_node,
-                tunnel_to_nodes_dest=server_tunnel_dest)[0]
+                                        nnodes=1, outfile=server_outfile, nodes=server_node,
+                                        tunnel_to_nodes_dest=server_tunnel_dest)[0]
 
         # Connect to the remote runners. SSH can be slow, so give generous
         # timeout (retry window) so we don't end up with a ConnectionRefused.
@@ -539,13 +549,13 @@ class WebServerRunner:
         # client/server of our webserver setup.
         self.ctx.log.info('Connecting to remote nodes')
         client_port = client_job.tunnel_src if client_tunnel_dest else \
-                rrunner_port_client
+            rrunner_port_client
         server_port = server_job.tunnel_src if server_tunnel_dest else \
-                rrunner_port_server
+            rrunner_port_server
         client = RemoteRunner(self.ctx.log, side='client',
-                host=client_host, port=client_port, timeout=10)
+                              host=client_host, port=client_port, timeout=10)
         server = RemoteRunner(self.ctx.log, side='client',
-                host=server_host, port=server_port, timeout=10)
+                              host=server_host, port=server_port, timeout=10)
 
         _err = None
         try:
@@ -599,9 +609,9 @@ class WebServerRunner:
 
         self.ctx.log.info('Done, syncing results to ' + self.logdir)
         self.pool.sync_from_nodes(client_debug_file,
-                self.logfile(client_debug_file), client_node)
+                                  self.logfile(client_debug_file), client_node)
         self.pool.sync_from_nodes(server_debug_file,
-                self.logfile(server_debug_file), server_node)
+                                  self.logfile(server_debug_file), server_node)
 
         self.pool.cleanup_tempdirs()
 
@@ -648,12 +658,12 @@ class WebServerRunner:
             server_command = self.bash_command(server_script)
             self.ctx.log.debug('server will log to ' + server_outfile)
             self.pool.run(self.ctx, server_command, outfile=server_outfile,
-                            jobid='server', nnodes=1)
+                          jobid='server', nnodes=1)
 
             client_command = self.bash_command(self.wrk_client_script())
             self.ctx.log.debug('client will log to ' + client_outfile)
             self.pool.run(self.ctx, client_command, outfile=client_outfile,
-                            jobid='wrk-client', nnodes=1)
+                          jobid='wrk-client', nnodes=1)
 
     def run_bench_server(self):
         if self.pool:
@@ -736,7 +746,7 @@ class WebServerRunner:
     def populate_stagedir(self):
         if os.path.exists(self.stagedir):
             self.ctx.log.debug('removing old staging run directory ' +
-                    self.stagedir)
+                               self.stagedir)
             shutil.rmtree(self.stagedir)
 
         self.ctx.log.debug('populating local staging run directory')
@@ -849,17 +859,17 @@ class WebServerRunner:
         echo "=== requesting $url"
         wget -q -O requested_index.html "$url"
         ''') + \
-        '''
-        if diff -q index.html requested_index.html; then
-            echo "=== contents of index.html are correct"
-        else
-            echo "=== ERROR: content mismatch:"
-            echo "  $(pwd)/requested_index.html"
-            echo "does not match:"
-            echo "  $(pwd)/index.html"
-            exit 1
-        fi
-        '''.format(**locals())
+            '''
+            if diff -q index.html requested_index.html; then
+                echo "=== contents of index.html are correct"
+            else
+                echo "=== ERROR: content mismatch:"
+                echo "  $(pwd)/requested_index.html"
+                echo "does not match:"
+                echo "  $(pwd)/index.html"
+                exit 1
+            fi
+            '''.format(**locals())
 
     def wrk_server_script(self):
         return self.server_script('''
@@ -941,7 +951,7 @@ class Nginx(WebServer):
     def __init__(self, version, build_flags: List[str] = []):
         super().__init__()
         self.build_flags = build_flags
-        self.name = 'nginx-'+ version
+        self.name = 'nginx-' + version
 
     def fetch(self, ctx):
         download(ctx, 'https://nginx.org/download/' + self.tar_name())
@@ -1006,9 +1016,9 @@ class Nginx(WebServer):
     def add_run_args(self, parser):
         super().add_run_args(parser)
         parser.add_argument('--workers', type=int, default=1,
-                help='number of worker processes (default 1)')
+                            help='number of worker processes (default 1)')
         parser.add_argument('--worker-connections', type=int, default=1024,
-                help='number of connections per worker process (default 1024)')
+                            help='number of connections per worker process (default 1024)')
 
     def populate_stagedir(self, runner):
         # Nginx needs the logs/ dir to create the default error log before
@@ -1058,13 +1068,13 @@ class Nginx(WebServer):
         runopt = '-g "daemon off;"' if foreground else ''
         if runner.ctx.args.nofork:
             runopt = '-g "daemon off; master_process off;"'
-        return '{nginx} -p "{runner.rundir}" -c nginx.conf {runopt}'\
-                .format(**locals())
+        return '{nginx} -p "{runner.rundir}" -c nginx.conf {runopt}' \
+            .format(**locals())
 
     def stop_cmd(self, runner):
         nginx = self.server_bin(runner.ctx, runner.instance)
-        return '{nginx} -p "{runner.rundir}" -c nginx.conf -s quit'\
-                .format(**locals())
+        return '{nginx} -p "{runner.rundir}" -c nginx.conf -s quit' \
+            .format(**locals())
 
     @staticmethod
     def kill_cmd(runner):
@@ -1168,7 +1178,7 @@ class ApacheHttpd(WebServer):
                   '--prefix=' + prefix,
                   '--with-apr=' + prefix,
                   '--with-apr-util=' + prefix,
-                  '--enable-modules=none', # only build static
+                  '--enable-modules=none',  # only build static
                   '--enable-mods-static=' + qjoin(self.modules),
                   *self.build_flags], env=env)
 
@@ -1186,11 +1196,11 @@ class ApacheHttpd(WebServer):
         super().add_run_args(parser)
         nproc = cpu_count()
         parser.add_argument('--workers', type=int, default=nproc,
-                help='number of worker processes '
-                     '(ServerLimit, default %d)' % nproc)
+                            help='number of worker processes '
+                                 '(ServerLimit, default %d)' % nproc)
         parser.add_argument('--worker-threads', type=int, default=25,
-                help='number of connection threads per worker process '
-                     '(ThreadsPerChild, default 25)')
+                            help='number of connection threads per worker process '
+                                 '(ThreadsPerChild, default 25)')
 
     def populate_stagedir(self, runner):
         runner.ctx.log.debug('copying base config')
@@ -1269,7 +1279,7 @@ class Lighttpd(WebServer):
         assert m
         minor_version = m.group(1)
         download(ctx, 'https://download.lighttpd.net/lighttpd/releases-%s.x/%s' %
-                      (minor_version, self.tar_name()))
+                 (minor_version, self.tar_name()))
 
     def is_fetched(self, ctx):
         return os.path.exists(self.tar_name())
@@ -1314,9 +1324,9 @@ class Lighttpd(WebServer):
     def add_run_args(self, parser):
         super().add_run_args(parser)
         parser.add_argument('--workers', type=int, default=1,
-                help='number of worker processes (default 1)')
+                            help='number of worker processes (default 1)')
         parser.add_argument('--server-connections', type=int, default=2048,
-                help='number of concurrent connections to the server (default 2048)')
+                            help='number of concurrent connections to the server (default 2048)')
 
     def populate_stagedir(self, runner):
         a = runner.ctx.args
@@ -1361,8 +1371,8 @@ class Lighttpd(WebServer):
     def start_cmd(self, runner, foreground=False):
         lighttpd = self.server_bin(runner.ctx, runner.instance)
         runopt = '-D' if foreground else ''
-        return '{lighttpd} -f "{runner.rundir}/lighttpd.conf" {runopt}'\
-                .format(**locals())
+        return '{lighttpd} -f "{runner.rundir}/lighttpd.conf" {runopt}' \
+            .format(**locals())
 
     def stop_cmd(self, runner):
         # TODO better to read pidfile
@@ -1407,7 +1417,7 @@ def parse_filesize(filesize):
         return filesize
     if not isinstance(filesize, str):
         raise FatalError('unsupported filesize type ' + repr(filesize))
-    factors = { '': 1,
+    factors = {'': 1,
                'K': 1024,
                'M': 1024 * 1024,
                'G': 1024 * 1024 * 1024}

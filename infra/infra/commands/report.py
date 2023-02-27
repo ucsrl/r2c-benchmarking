@@ -246,6 +246,9 @@ class ReportCommand(Command):
                         series = grouped.get((key, f), None)
                         if series is None:
                             value = None
+                        elif None in series:
+                            ctx.log.warn("One or more of the aggregated values from '%s' are None. Can't compute aggregate" % f)
+                            value = None
                         else:
                             value = _aggregate_fns[ag](series)
                             if instance != baseline_instance and baseline_results and isinstance(value, (int, float)):
