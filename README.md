@@ -64,6 +64,14 @@ To calculate the overhead, you need to compare the saturation throughput and lat
 See the [official documentation](https://instrumentation-infra.readthedocs.io/en/master/guides/webservers.html) for more details on the methodology.
 If you only want to test whether the instrumented webservers work, running a single configuration (i.e. without baseline) is sufficient.
 
+Depending on the benchmark settings (e.g. number of connections) you might encounter problems with file handle limits.
+In particular, the Debian default of 1024 might be too low for a larger number of connections.
+In such a case the generated benchmark results for some of the runs are corrupt and cannot be parsed with the `report` command.
+You will typically receive an error such as `AssertionError: regex not found in outfile`.
+You can check whether file handle limits are a problem by searching for "Too many open file handles" in the result directory, e.g., `grep -R "Too many open files" results/run.X`.
+If the search turns up any results, you need to increase the file handle limit for the user running the benchmarks.
+
+
 ### Configuring password-less SSH login
 The webserver benchmarks require password-less login via SSH to control either the client or the server side.
 The following examples show how to run the webserver benchmarks with the client and server running on the same host.
