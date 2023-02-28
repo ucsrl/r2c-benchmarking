@@ -135,11 +135,15 @@ To build the GTK version with R²C protections enabled, follow these instruction
 1. You must install the following dependencies for building: `apt-get install ruby libcairo2 libcairo2-dev libgcrypt20 libgcrypt20-dev libharfbuzz-dev libjpeg-dev libepoxy-dev libsqlite3-dev unifdef libwebp-dev libgles-dev libgtk-3-dev libsoup2.4-dev libxslt1-dev libsecret-1-dev libgirepository1.0-dev libtasn1-6-dev libwpe-1.0-dev libwpebackend-fdo-1.0-dev libgbm-dev libdrm-dev flite1-dev libenchant-2-dev libxt-dev libopenjp2-7-dev libwoff-dev libavif-dev libsystemd-dev libnotify-dev liblcms2-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-bad1.0-dev gperf libevent-dev libasound2-dev libopus-dev libpulse-dev gtk-doc-tools`
    Newer versions of Webkit use Flatpak dependencies for the build, as described at https://trac.webkit.org/wiki/BuildingGtk#Dependencies.
    However, newer versions introduce dependencies not available in Debian 10/11 and are also not compatible with the LLVM version that R²C is based on. 
-1. Create a build directory, e.g., `webkit/build` and run cmake with the following options 
+1. Create a build directory, e.g., `webkit/build` and run the following commands (i.e. cmake with certain options set) 
    
-   ``
-   export COMPILER_FLAGS="-flto=thin -O3 -fbtras=10 -fheap-boobytraps=10" export LDFLAGS="-flto=thin -Wl,--plugin-opt,-fast-isel=false -fbtras=10 -fheap-boobytraps=10 -Wl,--plugin-opt,-assume-btra-callee=maybe -Wl,--plugin-opt,-prolog-min-padding-instructions=1 -Wl,--plugin-opt,-prolog-max-padding-instructions=5 -Wl,--plugin-opt,-shuffle-functions=true -Wl,--plugin-opt,-shuffle-globals=true -Wl,--plugin-opt,-randomize-reg-alloc=true" && cmake -DCMAKE_C_COMPILER:FILEPATH=<llvm-build>/bin/clang -DCMAKE_RANLIB=<llvm-build>/bin/llvm-ranlib -DCMAKE_NM=<llvm-build>/bin/llvm-nm -DCMAKE_AR=<llvm-build>/bin/llvm-ar -DCMAKE_CXX_COMPILER:FILEPATH=<llvm-build>/bin/clang++ -DCMAKE_C_FLAGS=$COMPILER_FLAGS -DCMAKE_CXX_FLAGS=$COMPILER_FLAGS -DPORT="GTK" -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Release -G Ninja -DUSE_WPE_RENDERER=Off -DENABLE_GAMEPAD=OFF -DDEVELOPER_MODE=ON -DENABLE_EXPERIMENTAL_FEATURES=ON"<webkit-src>"
-   ``
+   ```shell
+   export COMPILER_FLAGS="-flto=thin -O3 -fbtras=10 -fheap-boobytraps=10"
+   export LDFLAGS="-flto=thin -Wl,--plugin-opt,-fast-isel=false -fbtras=10 -fheap-boobytraps=10 -Wl,--plugin-opt,-assume-btra-callee=maybe -Wl,--plugin-opt,-prolog-min-padding-instructions=1 -Wl,--plugin-opt,-prolog-max-padding-instructions=5 -Wl,--plugin-opt,-shuffle-functions=true -Wl,--plugin-opt,-shuffle-globals=true -Wl,--plugin-opt,-randomize-reg-alloc=true"
+   export LLVM_BUILD_DIR=<llvm-build>
+   export WEBKIT_SRC=<webkit-src>
+   cmake -DCMAKE_C_COMPILER:FILEPATH="$LLVM_BUILD_DIR/bin/clang" -DCMAKE_RANLIB="$LLVM_BUILD_DIR/bin/llvm-ranlib" -DCMAKE_NM="$LLVM_BUILD_DIR/bin/llvm-nm" -DCMAKE_AR="$LLVM_BUILD_DIR/bin/llvm-ar" -DCMAKE_CXX_COMPILER:FILEPATH="$LLVM_BUILD_DIR/bin/clang++" -DCMAKE_C_FLAGS="$COMPILER_FLAGS" -DCMAKE_CXX_FLAGS="$COMPILER_FLAGS" -DPORT="GTK" -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Release -G Ninja -DUSE_WPE_RENDERER=Off -DENABLE_GAMEPAD=OFF -DDEVELOPER_MODE=ON -DENABLE_EXPERIMENTAL_FEATURES=ON "$WEBKIT_SRC"
+   ```
       
    Note that the disabled components are not related to R²C, but also had to be disabled for the baseline build.
 
