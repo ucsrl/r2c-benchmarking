@@ -24,6 +24,11 @@ The command will download and build all build requirements, as well as the modif
 The command assumes the C compiler `gcc` and the C++ compiler `g++`, but you can override the defaults by setting the environment variable `CC` and `CXX`, respectively.
 The compiler can be found under `build/packages/llvm-src-11.0.0/obj`.
 
+> **WARNING**: Please make sure that environment variables that influence the build (e.g. LDFLAGS) are either empty or contain values compatible with building LLVM.
+> This is especially true if you try to (re)build LLVM after building the webservers, since the webserver build commands set environment variables.
+> If you accidentally run the pkg-build command with incorrect environment variables, make sure to delete the build/packages/llvm-src-11.0.0/obj and build/packages/llvm-src-11.0.0/install folders afterwards.
+> These folders contain the generated CMake configuration and, thus, cache the supplied environment variables.
+
 ## Building the compiler manually (optional)
 If the automatic download and build of the compiler fails for whatever reason, you can try to build the compiler manually.
 
