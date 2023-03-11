@@ -1,7 +1,6 @@
 # About
 
 This repository contains the benchmarking and evaluation infrastructure for R2C.
-The build steps were tested on Debian 10.
 
 The benchmarking infrastructure is based on the truly awesome VUsec [instrumentation-infra](https://github.com/vusec/instrumentation-infra) project.
 See the [official documentation](https://instrumentation-infra.readthedocs.io/en/master/guides/spec.html) for details on how to use the framework.
@@ -10,18 +9,37 @@ The fork changes a few internals of the framework to support the `run-random` co
 The `run-random` command runs a benchmark a given number of times, but also recompiles the benchmark with a new seed before each iteration.
 All the benchmarking configurations are encoded in `setup.py`.
 
-## Preparing the benchmarking framework:
+## Tested versions
+All the benchmark builds were tested on Debian 10  and `glibc` version `2.28`.
+
+Building the compiler was tested with `clang` version `11.1.0` as C/C++ compiler and CMake version `3.13.4`.
+In principle, the build should also work with `gcc` and newer Debian derivatives.
+However, building with `gcc` version `8.3.0` led to an error on the system described above.
+Consult the LLVM documentation for details on which compiler and glibc version is supported for building LLVM 11.
+The R2C implementation is based on the LLVM repository tag `llvmorg-11.1.0-rc3`.
+
+## Dependency installation
+### Benchmarking framework
 1. Install `fuseiso unzip binutils-dev jq libpcre3-dev libpcre2-dev bison build-essential gettext git pkg-config python ssh`
 1. Clone this repository
 1. Create a Python virtual environment (e.g. `virtualenv venv`)  and install the packages `PyYaml terminaltables fancytable psutil`
 
-## Building the compiler
+### R2C compiler
 To build the modified LLVM compiler, you need a working build toolchain.
 On Debian you can install one by issuing `sudo apt-get install build-essential ninja-build`.
+
+### Webkit
+You must install the following dependencies for building Webkit: `apt-get install ruby libcairo2 libcairo2-dev libgcrypt20 libgcrypt20-dev libharfbuzz-dev libjpeg-dev libepoxy-dev libsqlite3-dev unifdef libwebp-dev libgles-dev libgtk-3-dev libsoup2.4-dev libxslt1-dev libsecret-1-dev libgirepository1.0-dev libtasn1-6-dev libwpe-1.0-dev libwpebackend-fdo-1.0-dev libgbm-dev libdrm-dev flite1-dev libenchant-2-dev libxt-dev libopenjp2-7-dev libwoff-dev libavif-dev libsystemd-dev libnotify-dev liblcms2-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-bad1.0-dev gperf libevent-dev libasound2-dev libopus-dev libpulse-dev gtk-doc-tools`
+Newer versions of Webkit use Flatpak dependencies for the build, as described at https://trac.webkit.org/wiki/BuildingGtk#Dependencies.
+However, newer versions introduce dependencies not available in Debian 10/11 and are also not compatible with the LLVM version that R²C is based on. 
+
+
+## Building the compiler
 You can build the compiler without running any benchmarks by using the command
 `venv/bin/python setup.py pkg-build llvm-src-11.0.0`
-The command will download and build all build requirements, as well as the modified LLVM compiler.
+The command will download and build all additional build requirements, as well as the modified LLVM compiler.
 The command assumes the C compiler `gcc` and the C++ compiler `g++`, but you can override the defaults by setting the environment variable `CC` and `CXX`, respectively.
+
 The compiler can be found under `build/packages/llvm-src-11.0.0/obj`.
 
 > **WARNING**: Please make sure that environment variables that influence the build (e.g. LDFLAGS) are either empty or contain values compatible with building LLVM.
@@ -137,9 +155,6 @@ To build the GTK version with R²C protections enabled, follow these instruction
    The repository contains the version of Webkit we built for the paper (`c9ddaa0e84e3fc69e7f82e8773349b20ad67f2d1`) plus a commit with the required modifications.
    Alternatively, you can clone the official Webkit repository, checkout the mentioned commit and apply the patch in `0001-Disable-btras-for-functions-called-from-non-r2c-code.patch`.
    See the Limitations section in the paper for why the modifications are necessary.
-1. You must install the following dependencies for building: `apt-get install ruby libcairo2 libcairo2-dev libgcrypt20 libgcrypt20-dev libharfbuzz-dev libjpeg-dev libepoxy-dev libsqlite3-dev unifdef libwebp-dev libgles-dev libgtk-3-dev libsoup2.4-dev libxslt1-dev libsecret-1-dev libgirepository1.0-dev libtasn1-6-dev libwpe-1.0-dev libwpebackend-fdo-1.0-dev libgbm-dev libdrm-dev flite1-dev libenchant-2-dev libxt-dev libopenjp2-7-dev libwoff-dev libavif-dev libsystemd-dev libnotify-dev liblcms2-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-bad1.0-dev gperf libevent-dev libasound2-dev libopus-dev libpulse-dev gtk-doc-tools`
-   Newer versions of Webkit use Flatpak dependencies for the build, as described at https://trac.webkit.org/wiki/BuildingGtk#Dependencies.
-   However, newer versions introduce dependencies not available in Debian 10/11 and are also not compatible with the LLVM version that R²C is based on. 
 1. Create a build directory, e.g., `webkit/build` and run the following commands (i.e. cmake with certain options set) 
    
    ```shell
