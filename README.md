@@ -1,6 +1,6 @@
 # About
 
-This repository contains the benchmarking and evaluation infrastructure for R2C.
+This repository contains the benchmarking and evaluation infrastructure for "R2C: AOCR-Resilient Diversity with Reactive and Reflective Camouflage", our paper at EuroSys'23.
 
 The benchmarking infrastructure is based on the truly awesome VUsec [instrumentation-infra](https://github.com/vusec/instrumentation-infra) project.
 See the [official documentation](https://instrumentation-infra.readthedocs.io/en/master/guides/spec.html) for details on how to use the framework.
@@ -217,3 +217,18 @@ To build Chromium with R²C protections enabled, follow these instructions:
 Make sure to replace
 1. `<llvm-build>` with your LLVM build directory
 2. `<chrome-src>` with your Webkit source directory
+
+## Citation
+
+If you find this work useful, please cite our work as follows:
+
+```
+@inproceedings{berlakovich2023,
+author = {Berlakovich, Felix and Brunthaler, Stefan},
+title = {R2C: AOCR-Resilient Diversity with Reactive and Reflective Camouflage},
+year = {2023},
+booktitle = {Proceedings of the Eighteenth European Conference on Computer Systems},
+location = {Rome, Italy},
+series = {EuroSys '23}
+}
+```
