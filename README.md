@@ -36,9 +36,12 @@ However, newer versions introduce dependencies not available in Debian 10/11 and
 
 ## Building the compiler
 You can build the compiler without running any benchmarks by using the command
-`venv/bin/python setup.py pkg-build llvm-src-11.0.0`
+`venv/bin/python setup.py pkg-build llvm-src-11.0.0`.
 The command will download and build all additional build requirements, as well as the modified LLVM compiler.
 The command assumes the C compiler `gcc` and the C++ compiler `g++`, but you can override the defaults by setting the environment variable `CC` and `CXX`, respectively.
+
+Note that by default the benchmarking script downloads the newest available version of the compiler.
+The artifact evaluation was performed with [![DOI](https://zenodo.org/badge/592759175.svg)](https://zenodo.org/badge/latestdoi/592759175).
 
 The compiler can be found under `build/packages/llvm-src-11.0.0/obj`.
 
@@ -148,6 +151,7 @@ and add it to your `authorized_keys` file with `cat $HOME/.ssh/id_localhost.pub 
 
 ### Building Webkit
 Building Webkit is not fully automated yet.
+The artifact evaluation was performed with [![DOI](https://zenodo.org/badge/490684741.svg)](https://zenodo.org/badge/latestdoi/490684741).
 To build the GTK version with R²C protections enabled, follow these instructions:
 
 1. Fetch the Webkit source from https://github.com/fberlakovich/r2c-webkit, e.g., to `webkit/src`
